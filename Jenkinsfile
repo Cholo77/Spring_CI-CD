@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   tools {
-    jdk 'jdk17'
-    maven 'maven3'
+    jdk 'jdk17'     // Assure-toi que ce nom correspond à ton JDK configuré dans Jenkins (Manage Jenkins > Global Tool Configuration)
+    maven 'maven3'  // Assure-toi que ce nom correspond à ta config Maven dans Jenkins
   }
 
   environment {
@@ -11,9 +11,6 @@ pipeline {
     SONAR_TOKEN = credentials('sonar-token')
     SONAR_URL   = 'http://localhost:9000'
     NEXUS_URL   = 'http://3.80.54.73/repository/maven-snapshots/'
-
-    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-    PATH = "${env.JAVA_HOME}/bin:/usr/share/maven/bin:${env.PATH}"
   }
 
   stages {
@@ -90,6 +87,7 @@ pipeline {
           usernameVariable: 'NEXUS_USER',
           passwordVariable: 'NEXUS_PASS'
         )]) {
+          // Crée un settings.xml temporaire avec les credentials
           sh '''cat > settings.xml <<EOF
 <settings>
   <servers>
@@ -100,8 +98,9 @@ pipeline {
     </server>
   </servers>
 </settings>
-EOF
-'''
+EOF'''
+
+          // Utilise le nouveau settings.xml et déploie vers Nexus
           sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
         }
       }
