@@ -2,13 +2,12 @@ pipeline {
     agent any
 
     tools {
-        jdk 'jdk17'      // Assure-toi que ce nom correspond à ta config Jenkins JDK
-        maven 'maven3'   // Pareil pour Maven
+        jdk 'jdk17'      // Assure-toi que ce nom correspond bien à ta config Jenkins (JDK)
+        maven 'maven3'   // Idem pour Maven
     }
 
     environment {
-        // Tu peux aussi définir JAVA_HOME explicitement ici si besoin
-        // JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'  // Chemin JAVA_HOME sur ton agent
     }
 
     stages {
@@ -27,6 +26,7 @@ pipeline {
         }
 
         /*
+        // Décommente ces stages quand tu auras configuré SonarQube, Docker, Trivy, Nexus
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
