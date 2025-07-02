@@ -1,13 +1,13 @@
 pipeline {
-    agent any
+    agent { label 'aws-agent' }
 
     tools {
-        jdk 'jdk17'      // Assure-toi que ce nom correspond bien à ta config Jenkins (JDK)
-        maven 'maven3'   // Idem pour Maven
+        jdk 'jdk17'
+        maven 'maven3'
     }
 
     environment {
-        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'  // Chemin JAVA_HOME sur ton agent
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
     }
 
     stages {
