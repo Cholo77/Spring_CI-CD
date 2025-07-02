@@ -27,7 +27,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
+                withSonarQubeEnv('MySonar') {
                     sh 'mvn sonar:sonar'
                 }
             }
@@ -41,7 +41,25 @@ pipeline {
             }
         }
 
-        // Tu pourras ajouter plus tard les stages Docker, Trivy, Nexus, etc.
+        /*
+        stage('Docker Login, Build & Push') {
+            steps {
+                // tes commandes docker ici
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                // tes commandes trivy ici
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                // tes commandes déploiement ici
+            }
+        }
+        */
     }
 
     post {
