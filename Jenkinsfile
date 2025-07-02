@@ -9,7 +9,7 @@ pipeline {
   environment {
     DOCKER_CRED = 'dockerhub'
     SONAR_TOKEN = credentials('sonar-token')
-    SONAR_URL   = 'http://localhost:9000'
+    SONAR_URL   = 'http://13.60.63.238:9000'   // Remplace par l’IP/hostname accessible depuis Jenkins
     NEXUS_URL   = 'http://3.80.54.73/repository/maven-snapshots/'
   }
 
@@ -29,7 +29,7 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          withSonarQubeEnv('MySonar') {
+          withSonarQubeEnv('sonarqube-server') {  // Mets ici le nom exact SonarQube dans Jenkins
             sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}"
           }
         }
@@ -80,15 +80,15 @@ pipeline {
     }
 
     stage('Deploy to Nexus') {
-  steps {
-    echo '📦 Déploiement du JAR vers Nexus (maven-snapshots)'
-    withCredentials([usernamePassword(
-      credentialsId: 'nexus-credentials',
-      usernameVariable: 'NEXUS_USER',
-      passwordVariable: 'NEXUS_PASS'
-    )]) {
-      // Crée un settings.xml temporaire avec les credentials
-      sh '''cat > settings.xml <<EOF
+      steps {
+        echo '📦 Déploiement du JAR vers Nexus (maven-snapshots)'
+        withCredentials([usernamePassword(
+          credentialsId: 'nexus-credentials',
+          usernameVariable: 'NEXUS_USER',
+          passwordVariable: 'NEXUS_PASS'
+        )]) {
+          // Crée un settings.xml temporaire avec les credentials
+          sh '''cat > settings.xml <<EOF
 <settings>
   <servers>
     <server>
@@ -99,12 +99,11 @@ pipeline {
   </servers>
 </settings>
 EOF'''
-      
-      // Utilise le nouveau settings.xml et corrige la syntaxe du repository
-      sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
+          // Utilise le nouveau settings.xml et corrige la syntaxe du repository
+          sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
+        }
+      }
     }
-  }
-}
   }
 
   post {
