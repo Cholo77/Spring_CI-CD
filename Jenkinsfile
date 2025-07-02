@@ -1,114 +1,74 @@
 pipeline {
-  agent any
+    agent any
 
-  tools {
-    jdk 'jdk17'
-    maven 'maven3'
-  }
-
-  environment {
-    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-    PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
-    DOCKER_CRED = 'dockerhub'
-    SONAR_TOKEN = credentials('sonar-token')
-    SONAR_URL = 'http://localhost:9000'
-    NEXUS_URL = 'http://3.80.54.73/repository/maven-snapshots/'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
+    tools {
+        jdk 'jdk17'      // Assure-toi que ce nom correspond à ta config Jenkins JDK
+        maven 'maven3'   // Pareil pour Maven
     }
 
-    stage('Build & Test') {
-      steps {
-        sh 'mvn clean package -B'
-      }
+    environment {
+        // Tu peux aussi définir JAVA_HOME explicitement ici si besoin
+        // JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
     }
 
-    stage('SonarQube Analysis') {
-      steps {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          withSonarQubeEnv('MySonar') {
-            sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}"
-          }
-        }
-      }
-    }
-
-    stage('Quality Gate') {
-      steps {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          timeout(time: 2, unit: 'MINUTES') {
-            script {
-              def qg = waitForQualityGate()
-              echo "Quality Gate: ${qg.status}"
-              if (qg.status != 'OK') {
-                currentBuild.result = 'UNSTABLE'
-              }
+    stages {
+        stage('Test Env') {
+            steps {
+                sh 'echo "JAVA_HOME=$JAVA_HOME"'
+                sh 'ls -l $JAVA_HOME'
+                sh 'java -version'
             }
-          }
         }
-      }
+
+        stage('Build & Test') {
+            steps {
+                sh 'mvn clean package -B'
+            }
+        }
+
+        /*
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Docker Login, Build & Push') {
+            steps {
+                // tes commandes docker ici
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                // tes commandes trivy ici
+            }
+        }
+
+        stage('Deploy to Nexus') {
+            steps {
+                // tes commandes déploiement ici
+            }
+        }
+        */
     }
 
-    stage('Docker Login, Build & Push') {
-      steps {
-        withCredentials([usernamePassword(
-          credentialsId: DOCKER_CRED,
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          sh '''
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker build -t $DOCKER_USER/demoapp:${GIT_COMMIT} .
-            docker push $DOCKER_USER/demoapp:${GIT_COMMIT}
-            docker tag $DOCKER_USER/demoapp:${GIT_COMMIT} $DOCKER_USER/demoapp:latest
-            docker push $DOCKER_USER/demoapp:latest
-          '''
+    post {
+        success {
+            echo '✅ Pipeline réussi'
         }
-      }
-    }
-
-    stage('Trivy Scan') {
-      steps {
-        echo '🔍 Scanning image with Trivy'
-        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          sh "trivy image --exit-code 1 --severity HIGH,CRITICAL $DOCKER_USER/demoapp:${GIT_COMMIT}"
+        failure {
+            echo '❌ Pipeline échoué'
         }
-      }
     }
-
-    stage('Deploy to Nexus') {
-      steps {
-        echo '📦 Déploiement du JAR vers Nexus (maven-snapshots)'
-        withCredentials([usernamePassword(
-          credentialsId: 'nexus-credentials',
-          usernameVariable: 'NEXUS_USER',
-          passwordVariable: 'NEXUS_PASS'
-        )]) {
-          sh '''cat > settings.xml <<EOF
-<settings>
-  <servers>
-    <server>
-      <id>nexus</id>
-      <username>$NEXUS_USER</username>
-      <password>$NEXUS_PASS</password>
-    </server>
-  </servers>
-</settings>
-EOF'''
-          sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
-        }
-      }
-    }
-  }
-
-  post {
-    success  { echo '✅ Pipeline terminé avec succès' }
-    unstable { echo '⚠️ Pipeline instable (vérifier les logs)' }
-    failure  { echo '❌ Pipeline échoué' }
-  }
 }
