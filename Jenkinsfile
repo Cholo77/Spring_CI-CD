@@ -9,8 +9,10 @@ pipeline {
   environment {
     DOCKER_CRED = 'dockerhub'
     SONAR_TOKEN = credentials('sonar-token')
-    SONAR_URL   = 'http://13.60.63.238:9000'   // Remplace par l’IP/hostname accessible depuis Jenkins
+    SONAR_URL   = 'http://localhost:9000'
     NEXUS_URL   = 'http://3.80.54.73/repository/maven-snapshots/'
+    JAVA_HOME   = tool 'jdk17'
+    PATH        = "${tool 'jdk17'}/bin:${tool 'maven3'}/bin:${env.PATH}"
   }
 
   stages {
@@ -29,7 +31,7 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-          withSonarQubeEnv('sonarqube-server') {  // Mets ici le nom exact SonarQube dans Jenkins
+          withSonarQubeEnv('MySonar') {
             sh "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}"
           }
         }
@@ -99,6 +101,7 @@ pipeline {
   </servers>
 </settings>
 EOF'''
+          
           // Utilise le nouveau settings.xml et corrige la syntaxe du repository
           sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
         }
