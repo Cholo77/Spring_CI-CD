@@ -1,7 +1,8 @@
 pipeline {
-  agent { label 'contrôleur' }  // force la build à se faire sur ce nœud
+  agent any
+
   tools {
-    jdk   'jdk17'
+    jdk 'jdk17'
     maven 'maven3'
   }
 
@@ -10,6 +11,9 @@ pipeline {
     SONAR_TOKEN = credentials('sonar-token')
     SONAR_URL   = 'http://localhost:9000'
     NEXUS_URL   = 'http://3.80.54.73/repository/maven-snapshots/'
+
+    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+    PATH = "${env.JAVA_HOME}/bin:/usr/share/maven/bin:${env.PATH}"
   }
 
   stages {
@@ -96,7 +100,8 @@ pipeline {
     </server>
   </servers>
 </settings>
-EOF'''
+EOF
+'''
           sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
         }
       }
