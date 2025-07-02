@@ -5,7 +5,7 @@
 
   <groupId>com.example</groupId>
   <artifactId>demo</artifactId>
-  <version>0.0.1-SNAPSHOT</version> <!-- Obligatoire pour SNAPSHOT -->
+  <version>0.0.1-SNAPSHOT</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -46,6 +46,11 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>3.9.1.2184</version>
+      </plugin>
     </plugins>
   </build>
 
@@ -55,4 +60,5 @@
       <url>http://3.80.54.73:8081/repository/maven-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
+
 </project>
