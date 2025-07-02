@@ -25,8 +25,6 @@ pipeline {
             }
         }
 
-        /*
-        // Décommente ces stages quand tu auras configuré SonarQube, Docker, Trivy, Nexus
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -43,24 +41,7 @@ pipeline {
             }
         }
 
-        stage('Docker Login, Build & Push') {
-            steps {
-                // tes commandes docker ici
-            }
-        }
-
-        stage('Trivy Scan') {
-            steps {
-                // tes commandes trivy ici
-            }
-        }
-
-        stage('Deploy to Nexus') {
-            steps {
-                // tes commandes déploiement ici
-            }
-        }
-        */
+        // Tu pourras ajouter plus tard les stages Docker, Trivy, Nexus, etc.
     }
 
     post {
