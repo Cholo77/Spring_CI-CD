@@ -1,6 +1,5 @@
 pipeline {
-  agent any
-
+  agent { label 'contrôleur' }  // force la build à se faire sur ce nœud
   tools {
     jdk   'jdk17'
     maven 'maven3'
@@ -11,8 +10,6 @@ pipeline {
     SONAR_TOKEN = credentials('sonar-token')
     SONAR_URL   = 'http://localhost:9000'
     NEXUS_URL   = 'http://3.80.54.73/repository/maven-snapshots/'
-    JAVA_HOME   = tool 'jdk17'
-    PATH        = "${tool 'jdk17'}/bin:${tool 'maven3'}/bin:${env.PATH}"
   }
 
   stages {
@@ -89,7 +86,6 @@ pipeline {
           usernameVariable: 'NEXUS_USER',
           passwordVariable: 'NEXUS_PASS'
         )]) {
-          // Crée un settings.xml temporaire avec les credentials
           sh '''cat > settings.xml <<EOF
 <settings>
   <servers>
@@ -101,8 +97,6 @@ pipeline {
   </servers>
 </settings>
 EOF'''
-          
-          // Utilise le nouveau settings.xml et corrige la syntaxe du repository
           sh 'mvn deploy -B -s settings.xml -DaltDeploymentRepository=nexus::http://3.80.54.73:8081/repository/maven-snapshots/'
         }
       }
