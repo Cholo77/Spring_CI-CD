@@ -25,6 +25,7 @@ pipeline {
             }
         }
 
+        /*
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('MySonar') {
@@ -41,22 +42,21 @@ pipeline {
             }
         }
 
-        /*
         stage('Docker Login, Build & Push') {
             steps {
-                // tes commandes docker ici
+                // commandes Docker
             }
         }
 
         stage('Trivy Scan') {
             steps {
-                // tes commandes trivy ici
+                // commandes Trivy
             }
         }
 
         stage('Deploy to Nexus') {
             steps {
-                // tes commandes déploiement ici
+                // commandes Nexus
             }
         }
         */
